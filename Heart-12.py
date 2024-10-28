@@ -54,7 +54,9 @@ def create_heart_points(scale=5, num_points=1000, num_layers=30):
 
 def draw_heart(points, width=80, height=40, time_val=0):
     shading_chars = " .:!*OQ#"  # Упрощенный набор символов для улучшения производительности
-    
+    # shading_chars = " .:!*OQ#•●~`08'°></|Оо⊖⊘⊙⊚⊛⊜⊝◉○◌◍◎●◐◑◒⬬⬭⬮⬯"
+    # shading_chars = " .:!*OQ#⊿▲△▴▵▶▷▸▹►▻▼▽▾▿◀◁◂◃◄◅◢◣◤◥◬◭◮◸◹◺◿∇∆𓇮⫷⫸"
+    # shading_chars = " .:!*OQ#ˍ‐⎯‒―⎺⎻⎼⎽‗‖─━│┃┄⌌⌍⌎⌏⌜⌝⌞┌⌟┍┎┏┐┑┒┓═║╒╓╔╔╔╕╕╖╖╗╗╘╙╚╱╲╳╭╮╯╰◜◝◞◟◠◡⌈⌊⌉⌋⎡⎣⎦⎤⎧⎩⎫⎭⎸⎹⎾⎿⏉⏊⏋⏌≡≣☰☱☲☳☴☵☶☷╛╛╜╜╝╝╞╟╟╠╡╡╢╢╣╣╤╤╥╥╦╦╧╧╨╨╩╩╪╪╫╬└┕┖┗┘┙┚┛├├┝┞┟┠┡┢┣┤┥┦┧┨┩┪┫┬┭┮┯┰┱┲┳┴┵┶┷┸┹┺┻┼┽┾┿╀╁╂╃╄╅╆╇╈╉╊╋┆┇┈┉┊┋╌╍╎╴╵╶╷╸╹╺╻╼╽╾╿▏▕╏–—"
     x = (points[:, 0] / np.max(np.abs(points[:, 0])) * (width//2) + width//2).astype(int)
     y = (points[:, 1] / np.max(np.abs(points[:, 1])) * (height//2) + height//2).astype(int)
     z = points[:, 2]
