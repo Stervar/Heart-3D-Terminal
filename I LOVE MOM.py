@@ -37,24 +37,105 @@ def create_heart_points(scale=5, num_points=1000, num_layers=30):
         factor = 1 - i/num_layers
         layer_x = factor * x
         layer_y = factor * y
-        layer_z = np.full_like(x, -i/2)  # Увеличена глубина
+        layer_z = np.full_like(x, -i/2)
         points.extend(zip(layer_x, layer_y, layer_z))
 
-    # Добавляем внутренние точки для объема
     for _ in range(num_points // 2):
-        r = np.random.random() * 0.8  # Случайный радиус внутри сердца
+        r = np.random.random() * 0.8
         theta = np.random.random() * 2 * np.pi
         phi = np.random.random() * np.pi
         x = r * 16 * np.sin(theta)**3 * np.sin(phi)
         y = r * (13 * np.cos(theta) - 5 * np.cos(2*theta) - 2 * np.cos(3*theta) - np.cos(4*theta)) * np.sin(phi)
-        z = r * 15 * np.cos(phi)  # Увеличена глубина
+        z = r * 15 * np.cos(phi)
         points.append((x, y, z))
 
     return scale * np.array(points)
 
+def create_big_letters():
+    return {
+        'I': [
+            "█████",
+            "  █  ",
+            "  █  ",
+            "  █  ",
+            "█████"
+        ],
+        'L': [
+            "█    ",
+            "█    ",
+            "█    ",
+            "█    ",
+            "█████"
+        ],
+        'O': [
+            "█████",
+            "█   █",
+            "█   █",
+            "█   █",
+            "█████"
+        ],
+        'V': [
+            "█   █",
+            "█   █",
+            "█   █",
+            " █ █ ",
+            "  █  "
+        ],
+        'E': [
+            "█████",
+            "█    ",
+            "████ ",
+            "█    ",
+            "█████"
+        ],
+        'M': [
+            "█   █",
+            "██ ██",
+            "█ █ █",
+            "█   █",
+            "█   █"
+        ],
+        ' ': [
+            "     ",
+            "     ",
+            "     ",
+            "     ",
+            "     "
+        ]
+    }
+
+def draw_big_animated_text(current_time, width):
+    text = "I LOVE MOM"
+    letters = create_big_letters()
+    letter_height = 5
+    spacing = 1
+    
+    # Создаем пустые строки для каждой линии текста
+    result = [""] * letter_height
+    
+    # Для каждого символа в тексте
+    for i, char in enumerate(text):
+        letter = letters.get(char, letters[' '])
+        hue = (current_time * 0.5 + i/len(text)) % 1.0
+        
+        # Для каждой строки буквы
+        for line in range(letter_height):
+            result[line] += "".join([get_colored_char(c, hue) if c != ' ' else ' ' for c in letter[line]]) + " " * spacing
+    
+    # Центрируем текст
+    total_width = len(result[0])
+    padding = " " * ((width - total_width) // 2)
+    
+    # Добавляем эффект волны
+    wave_result = []
+    for i, line in enumerate(result):
+        offset = int(2 * math.sin(current_time * 3 + i * 0.5))
+        wave_result.append(padding[:-offset] + line)
+    
+    return "\n".join(wave_result)
+
 def draw_heart(points, width=80, height=40, time_val=0):
-    shading_chars = " .:!*OQ#"  # Упрощенный набор символов для улучшения производительности
-    # shading_chars = " .:!*OQ#•●~`08'°></|Оо⊖⊘⊙⊚⊛⊜⊝◉○◌◍◎●◐◑◒⬬⬭⬮⬯"
+    shading_chars = " .:!*OQ#"
     x = (points[:, 0] / np.max(np.abs(points[:, 0])) * (width//2) + width//2).astype(int)
     y = (points[:, 1] / np.max(np.abs(points[:, 1])) * (height//2) + height//2).astype(int)
     z = points[:, 2]
@@ -78,10 +159,14 @@ def draw_heart(points, width=80, height=40, time_val=0):
                     hue = (time_val + z_factor) % 1.0
                     screen[yi, xi] = get_colored_char(shading_chars[char_index], hue, 1.0, 1.0)
     
-    return '\n'.join(''.join(row) for row in screen)
+    screen_lines = [(''.join(row)) for row in screen]
+    screen_lines.append('')  # Пустая строка для отступа
+    screen_lines.extend(draw_big_animated_text(time_val, width).split('\n'))
+    
+    return '\n'.join(screen_lines)
 
 def pulsating_effect(time):
-    return 1 + 0.05 * math.sin(time * 2)  # Увеличена амплитуда, уменьшена частота
+    return 1 + 0.05 * math.sin(time * 2)
 
 def main():
     heart_points = create_heart_points(scale=8)
@@ -104,7 +189,7 @@ def main():
             
             rotated_points[:, 1] *= -1
             
-            frame = draw_heart(rotated_points, time_val=(current_time * 0.1) % 1.0)
+            frame = draw_heart(rotated_points, time_val=current_time)
             
             fps_counter.append(time.time())
             fps = calculate_fps(fps_counter)
@@ -112,18 +197,13 @@ def main():
             status_line = f"\033[1mFPS: {fps:.1f} | Press Ctrl+C to exit\033[0m"
             frame_with_status = frame + "\n" + status_line
             
-            terminal_width = 80
-            frame_width = len(frame.split('\n')[0])
-            padding = ' ' * ((terminal_width - frame_width) // 2)
-            frame_with_status = padding + frame_with_status + padding
-            
             sys.stdout.write('\033[H' + frame_with_status)
             sys.stdout.flush()
             
-            angle_y += 0.05  # Немного уменьшена скорость вращения
+            angle_y += 0.05
             
             frame_time = time.time() - frame_start
-            if frame_time < 0.033:  # Целевые 30 FPS
+            if frame_time < 0.033:
                 time.sleep(0.033 - frame_time)
             
     except KeyboardInterrupt:
@@ -136,7 +216,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print('\033[?25h')
         print("\nProgram terminated")
-        
-        
-        
-        
