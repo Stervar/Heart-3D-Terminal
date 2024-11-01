@@ -1,25 +1,31 @@
-import numpy as np
-import time
-import sys
-import math
-from collections import deque
+import numpy as np  # Для работы с массивами и математическими вычислениями
+import time  # Для работы со временем и задержками
+import sys  # Для взаимодействия с системой
+import math  # Для математических функций
+from collections import deque  # Для подсчета FPS
 
+# Функция принимает массив точек и углы поворота вокруг осей X, Y и Z.
 def rotate_points(points, angle_x, angle_y, angle_z):
+    # Rx для поворота вокруг оси X
+    # Создание матриц поворота для каждой оси
     Rx = np.array([
-        [1, 0, 0],
-        [0, np.cos(angle_x), -np.sin(angle_x)],
-        [0, np.sin(angle_x), np.cos(angle_x)]
+        [1, 0, 0], # Матрица поворота вокруг X
+        [0, np.cos(angle_x), -np.sin(angle_x)], # Матрица поворота вокруг Y
+        [0, np.sin(angle_x), np.cos(angle_x)] # Матрица поворота вокруг Z
     ])
+    # Ry для поворота вокруг оси Y
     Ry = np.array([
         [np.cos(angle_y), 0, np.sin(angle_y)],
         [0, 1, 0],
         [-np.sin(angle_y), 0, np.cos(angle_y)]
     ])
+    # Rz для поворота вокруг оси Z
     Rz = np.array([
         [np.cos(angle_z), -np.sin(angle_z), 0],
         [np.sin(angle_z), np.cos(angle_z), 0],
         [0, 0, 1]
     ])
+    # Матрицы комбинируются в одну общую матрицу поворота R:
     R = np.dot(Rz, np.dot(Ry, Rx))
     return np.dot(points, R.T)
 
