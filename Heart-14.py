@@ -82,39 +82,66 @@ def draw_heart(points, width=100, height=50):
     # Расширенный набор символов для более детальной передачи глубины
     shading_chars = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
     
+    # Создаем изображение с использованием символов для передачи глубины
+    # Здесь происходит преобразование 3D координат в 2D координаты экрана.
+    # Координаты x и y нормализуются и масштабируются для соответствия размерам экрана.
     x = (points[:, 0] / np.max(np.abs(points[:, 0])) * (width//2) + width//2).astype(int)
     y = (points[:, 1] / np.max(np.abs(points[:, 1])) * (height//2) + height//2).astype(int)
     z = points[:, 2]
-    
+    # Упорядочиваем точки по глубине
+
+
+    # Создается маска для отбора только тех точек, которые находятся в пределах экрана.
     mask = (0 <= x) & (x < width) & (0 <= y) & (y < height)
     x, y, z = x[mask], y[mask], z[mask]
-    
+
+
+    # Создаются массивы для хранения символов экрана и значений глубины (z-буфер).
     screen = np.full((height, width), ' ', dtype=object)
     z_buffer = np.full((height, width), float('-inf'))
-    
+
+
+    # Вычисляются нормализованные значения глубины и соответствующие им индексы символов затенения.
     if len(z) > 0:
         z_min, z_max = np.min(z), np.max(z)
         if z_max > z_min:
             z_normalized = (z - z_min) / (z_max - z_min)
             intensity = (z_normalized * (len(shading_chars) - 1)).astype(int)
-            
+
+
+            # Для каждой точки проверяется, находится ли она ближе к "камере", чем уже отрисованная точка (z-буфер).
+            # Если да, то точка отрисовывается с соответствующим символом и интенсивностью цвета.
             for xi, yi, zi, char_index in zip(x, y, z, intensity):
                 if zi > z_buffer[yi, xi]:
                     z_buffer[yi, xi] = zi
                     z_factor = (zi - z_min) / (z_max - z_min)
                     screen[yi, xi] = get_shaded_char(shading_chars[char_index], 0.3 + 0.7 * z_factor)
-    
+
+
+    # Двумерный массив символов преобразуется в строку, представляющую готовое изображение.
     return '\n'.join(''.join(row) for row in screen)
 
+
+# Эта функция создает эффект пульсации сердца.
+# Она принимает параметр time (время) и возвращает значение, 
+# которое колеблется между 0.92 и 1.08.
 def pulsating_effect(time):
     return 1 + 0.08 * math.sin(time * 1.5)
+
 
 def main():
     heart_points = create_heart_points(scale=10)
     angle_x, angle_y, angle_z = 0, 0, 0
-    
-    print('\033[2J')
-    print('\033[?25l')
+# Здесь происходит инициализация основных параметров для анимации:
+
+# heart_points = create_heart_points(scale=10): создаются точки, формирующие сердце.
+# Функция create_heart_points (которая определена где-то выше в коде) генерирует эти точки, а scale=10 увеличивает их размер в 10 раз.
+# angle_x, angle_y, angle_z = 0, 0, 0: инициализируются углы поворота сердца вокруг осей X, Y и Z.
+# Изначально все углы равны нулю, что означает, что сердце находится в исходном положении.    
+
+
+    print('\033[2J') # Очистка экрана
+    print('\033[?25l') # Скрытие курсора
     
     fps_counter = deque(maxlen=30)
     start_time = time.time()
@@ -124,27 +151,37 @@ def main():
             frame_start = time.time()
             current_time = frame_start - start_time
             
+
             scale = pulsating_effect(current_time)
             scaled_points = heart_points * scale
             rotated_points = rotate_points(scaled_points, angle_x, angle_y, angle_z)
             
-            rotated_points[:, 1] *= -1
+
+            rotated_points[:, 1] *= -1 # Инвертирование Y-координат для правильной ориентации
+            
             
             frame = draw_heart(rotated_points)
             
+
             fps_counter.append(time.time())
             fps = calculate_fps(fps_counter)
             
+
             status_line = f"\033[1mFPS: {fps:.1f} | Press Ctrl+C to exit\033[0m"
             frame_with_status = frame + "\n" + status_line
             
-            sys.stdout.write('\033[H' + frame_with_status)
-            sys.stdout.flush()
-            
+
+            sys.stdout.write('\033[H' + frame_with_status) # Перемещение курсора в начало и вывод кадра
+            sys.stdout.flush() # Принудительный вывод буфера
+
+
+             # Обновление углов поворота для анимации
             angle_y += 0.04
             angle_x = 0.2 * math.sin(current_time * 0.5)
             angle_z = 0.1 * math.cos(current_time * 0.3)
-            
+
+
+            # Ограничение частоты кадров
             frame_time = time.time() - frame_start
             if frame_time < 0.033:
                 time.sleep(0.033 - frame_time)
