@@ -5,6 +5,7 @@ import math  # Для математических функций (sin, cos)
 from collections import deque  # Двусторонняя очередь для подсчета FPS
 import colorsys  # Для работы с цветовыми пространствами (HSV в RGB)
 
+
 def rotate_points(points, angle_y):
     # Создаем матрицу поворота вокруг оси Y
     Ry = np.array([
@@ -14,6 +15,7 @@ def rotate_points(points, angle_y):
     ])
     # Умножаем точки на транспонированную матрицу поворота
     return np.dot(points, Ry.T)
+
 
 def calculate_fps(fps_counter):
     if len(fps_counter) < 2:  # Проверка наличия минимум двух временных меток
