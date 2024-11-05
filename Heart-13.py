@@ -155,3 +155,5 @@ if __name__ == "__main__":
         print(f"\nAn error occurred: {str(e)}")
     finally:
         print('\033[0m')
+        
+        
