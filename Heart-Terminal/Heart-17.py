@@ -1,37 +1,75 @@
-import numpy as np  # Библиотека для работы с массивами и математическими вычислениями
-import time  # Для работы со временем и задержками
-import sys  # Для взаимодействия с системой (вывод в терминал)
-from collections import deque  # Двусторонняя очередь для подсчета FPS
-import colorsys  # Для работы с цветовыми пространствами (HSV в RGB)
+# Импорт необходимых библиотек
+import numpy as np  # Библиотека для работы с многомерными массивами и математическими вычислениями
+import time  # Модуль для работы со временем и создания задержек
+import sys  # Модуль для взаимодействия с системой и терминалом
+from collections import deque  # Структура данных для эффективного подсчета FPS
+import colorsys  # Модуль для преобразования цветовых пространств
 
 def rotate_points(points, angle_y):
-    # Создаем матрицу поворота вокруг оси Y
+    """
+    Функция поворота точек вокруг оси Y в трехмерном пространстве
+    
+    Параметры:
+    - points: массив трехмерных точек
+    - angle_y: угол поворота вокруг оси Y
+    
+    Возвращает повернутые точки
+    """
+    # Создание матрицы поворота вокруг оси Y
     Ry = np.array([
-        [np.cos(angle_y), 0, np.sin(angle_y)],
-        [0, 1, 0],
-        [-np.sin(angle_y), 0, np.cos(angle_y)]
+        [np.cos(angle_y), 0, np.sin(angle_y)],     # Первая строка матрицы поворота
+        [0, 1, 0],                                 # Вторая строка (ось Y не меняется)
+        [-np.sin(angle_y), 0, np.cos(angle_y)]     # Третья строка матрицы поворота
     ])
+    
+    # Умножение точек на транспонированную матрицу поворота
     return np.dot(points, Ry.T)
 
 def calculate_fps(fps_counter):
+    """
+    Расчет частоты кадров (FPS)
+    
+    Параметр:
+    - fps_counter: очередь временных меток кадров
+    
+    Возвращает количество кадров в секунду
+    """
+    # Проверка наличия достаточного количества меток
     if len(fps_counter) < 2:
         return 0.0
     
+    # Вычисление разницы времени между первой и последней меткой
     time_diff = fps_counter[-1] - fps_counter[0]
     
+    # Защита от деления на ноль
     if time_diff <= 0:
         return 0.0
 
+    # Расчет FPS: количество кадров / время
     return len(fps_counter) / time_diff
 
 def create_heart_points(scale=5, num_points=1000, num_layers=30):
+    """
+    Создание точек для формирования 3D-сердца
+    
+    Параметры:
+    - scale: масштаб сердца
+    - num_points: количество точек на контуре
+    - num_layers: количество слоев для объемности
+    
+    Возвращает массив точек сердца
+    """
+    # Создание параметрического массива для генерации контура сердца
     t = np.linspace(0, 2 * np.pi, num_points)
+    
+    # Параметрические уравнения сердца
     x = 16 * np.sin(t) ** 3
     y = 13 * np.cos(t) - 5 * np.cos(2 * t) - 2 * np.cos(3 * t) - np.cos(4 * t)
     z = np.zeros_like(x)
 
     points = []
 
+    # Создание слоев для объемности сердца
     for i in range(num_layers):
         factor = 1 - i / num_layers
         layer_x = factor * x
@@ -39,17 +77,20 @@ def create_heart_points(scale=5, num_points=1000, num_layers=30):
         layer_z = np.full(x.shape, -i / 2)
         points.extend(zip(layer_x, layer_y, layer_z))
 
+    # Добавление внутренних точек для реалистичности
     for _ in range(num_points // 2):
         r = np.random.random() * 0.8
         theta = np.random.random() * 2 * np.pi
         phi = np.random.random() * np.pi
         
+        # Вычисление внутренних координат с использованием сферических координат
         inner_x = r * 16 * np.sin(theta) ** 3 * np.sin(phi)
         inner_y = r * (13 * np.cos(theta) - 5 * np.cos(2 * theta) - 
                        2 * np.cos(3 * theta) - np.cos(4 * theta)) * np.sin(phi)
         inner_z = r * 15 * np.cos(phi)
         points.append((inner_x, inner_y, inner_z))
 
+    # Добавление дополнительных слоев
     for i in range(num_layers):
         factor = 1 - i / num_layers
         layer_x = factor * x
@@ -57,89 +98,127 @@ def create_heart_points(scale=5, num_points=1000, num_layers=30):
         layer_z = np.full(x.shape, i / 2)
         points.extend(zip(layer_x, layer_y, layer_z))
 
+    # Масштабирование точек
     return scale * np.array(points)
 
 def draw_heart(points, width=80, height=40):
+    """
+    Отрисовка сердца в терминале с использованием символов и z-буфера
+    
+    Параметры:
+    - points: массив точек сердца
+    - width: ширина терминала
+    - height: высота терминала
+    
+    Возвращает строку для вывода в терминал
+    """
+    # Набор символов для имитации глубины
     shading_chars = " .:!*OQ#"
     
-    # Нормализация координат
+    # Нормализация координат для отображения в терминале
     x = (points[:, 0] / np.max(np.abs(points[:, 0])) * (width // 2) + width // 2).astype(int)
     y = (-points[:, 1] / np.max(np.abs(points[:, 1])) * (height // 2) + height // 2).astype(int)
     z = points[:, 2]
     
+    # Отсечение точек за пределами экрана
     mask = (0 <= x) & (x < width) & (0 <= y) & (y < height)
     x, y, z = x[mask], y[mask], z[mask]
     
+    # Создание экрана и z-буфера
     screen = np.full((height, width), ' ', dtype=object)
     z_buffer = np.full((height, width), float('-inf'))
     
+    # Отрисовка точек с учетом глубины
     if len(z) > 0:
         z_min, z_max = np.min(z), np.max(z)
         if z_max > z_min:
-            z = (z - z_min) / (z_max - z_min)  # Нормализуем глубину
-            z = z * (len(shading_chars) - 1)  # Приводим к диапазону символов
+            # Нормализация и маппинг глубины на символы
+            z = (z - z_min) / (z_max - z_min)
+            z = z * (len(shading_chars) - 1)
             z = z.astype(int)
 
+            # Заполнение экрана с проверкой z-буфера
             for i in range(len(x)):
                 if z[i] >= z_buffer[y[i], x[i]]:
                     z_buffer[y[i], x[i]] = z[i]
                     screen[y[i], x[i]] = shading_chars[z[i]]
 
+    # Преобразование экрана в строку
     return '\n'.join(''. join(row) for row in screen)
 
 def pulsating_effect(time_val):
+    """
+    Создание эффекта пульсации
+     Параметр:
+    - time_val: текущее время для вычисления пульсации
+    
+    Возвращает значение масштаба для эффекта пульсации
+    """
     return 1 + 0.5 * np.sin(time_val * 2 * np.pi)  # Пульсация от 1 до 1.5
 
 def main():
+    """
+    Основная функция программы, отвечающая за инициализацию и выполнение цикла отрисовки
+    """
+    # Создание точек сердца с заданным масштабом
     heart_points = create_heart_points(scale=8)
-    angle_y = 0
+    angle_y = 0  # Начальный угол поворота вокруг оси Y
     
+    # Очистка терминала и скрытие курсора
     print('\033[2J')
     print('\033[?25l')
     
+    # Инициализация счетчика FPS
     fps_counter = deque(maxlen=60)
-    start_time = time.time()
+    start_time = time.time()  # Запоминаем время начала
     
     try:
         while True:
-            frame_start = time.time()
-            current_time = frame_start - start_time
+            frame_start = time.time()  # Время начала кадра
+            current_time = frame_start - start_time  # Текущее время
             
+            # Применение эффекта пульсации к точкам сердца
             scale = pulsating_effect(current_time)
             scaled_points = heart_points * scale
             
+            # Поворот точек сердца
             rotated_points = rotate_points(scaled_points, angle_y)
             
+            # Отрисовка сердца в терминале
             frame = draw_heart(rotated_points)
             
+            # Обновление счетчика FPS
             fps_counter.append(time.time())
             fps = calculate_fps(fps_counter)
             
+            # Формирование строки статуса с FPS
             status_line = f"\033[1mFPS: {fps:.1f} | Press Ctrl+C to exit\033[0m"
             frame_with_status = frame + "\n" + status_line
             
+            # Центрирование отрисованного кадра в терминале
             terminal_width = 80
             frame_width = len(frame.split('\n')[0])
             padding = ' ' * ((terminal_width - frame_width) // 2)
             frame_with_status = padding + frame_with_status + padding
             
+            # Вывод кадра в терминал
             sys.stdout.write('\033[H' + frame_with_status)
             sys.stdout.flush()
             
-            angle_y += 0.05
+            angle_y += 0.05  # Увеличение угла поворота
             
+            # Задержка для поддержания частоты кадров
             frame_time = time.time() - frame_start
             if frame_time < 0.033:
                 time.sleep(0.033 - frame_time)
 
     except KeyboardInterrupt:
-        print('\033[?25h')
-        print("\nProgram terminated")
+        # Обработка прерывания программы
+        print('\033[?25h')  # Показать курсор
+        print("\nProgram terminated")  # Сообщение о завершении
 
 if __name__ == "__main__":
-    main()
-
-
+    main()  # Запуск основной функции программы
 
 # 1. Исправление вызова функции time
 # Изменение: Вместо использования time() (что является ошибкой, так как это не функция), используется time.time().
