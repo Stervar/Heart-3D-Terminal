@@ -95,7 +95,7 @@
 <h2 align="center">◢⸻⸻⸻⸻⸻⸻⸻⸻❃⸻⸻⸻⸻⸻⸻⸻⸻◣</h2>
 <div align="center">
 
-<img src="https://github.com/Stervar/Heart-3D-Terminal/blob/main/assets/Снимок%20экрана%20(27).png" alt="Скриншот Сердца" width="800" height="600" />
+<img src="https://github.com/Stervar/Heart-3D-Terminal/blob/main/assets/Снимок%20экрана%20(27).png" alt="Скриншот Сердца" width="100%" />
 
 </div>
 
