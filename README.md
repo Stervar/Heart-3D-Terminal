@@ -93,8 +93,11 @@
 ## 📈 Примеры работы / Examples 📈
 </div>
 <h2 align="center">◢⸻⸻⸻⸻⸻⸻⸻⸻❃⸻⸻⸻⸻⸻⸻⸻⸻◣</h2>
+<div align="center">
 
-![Скриншот Сердца](https://github.com/Stervar/Heart-3D-Terminal/blob/main/assets/Снимок%20экрана%20(27).png)
+<img src="https://github.com/Stervar/Heart-3D-Terminal/blob/main/assets/Снимок%20экрана%20(27).png" alt="Скриншот Сердца" width="800" height="600" />
+
+</div>
 
 <h2 align="center">◢⸻⸻⸻⸻⸻⸻⸻⸻❃⸻⸻⸻⸻⸻⸻⸻⸻◣</h2>
 
