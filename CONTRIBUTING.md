@@ -1,4 +1,4 @@
-# CONTRIBUTING.md
+# CONTRIBUTING.md (Engl)
 
 Thank you for your interest in our project! We are glad that you want to contribute. Please read these guidelines before you begin.
 
@@ -46,7 +46,7 @@ Your changes will be subject to the project's license. Please see the LICENSE fi
 -
 
 
-# CONTRIBUTING.md
+# CONTRIBUTING.md (RU)
 
 Спасибо за интерес к нашему проекту! Мы рады, что вы хотите внести свой вклад. Пожалуйста, ознакомьтесь с этими рекомендациями, прежде чем начать.
 
