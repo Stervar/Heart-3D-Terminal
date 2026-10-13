@@ -143,8 +143,6 @@
 
 4. **Функция `get_colored_char`**:
    - Эта функция преобразует символ в цветной символ, используя HSV цветовую модель. Она принимает символ и его цветовые параметры, а затем возвращает ANSI последовательность для окраски символа.
-   - Пример кода:
-     ```python
      def get_colored_char(char, hue, saturation=1.0, value=1.0):
          hue = max(0.0, min(1.0, hue))
          r, g, b = [int(x * 255) for x in colorsys.hsv_to_rgb(hue, saturation, value)]
